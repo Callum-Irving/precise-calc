@@ -1,7 +1,22 @@
 [package]
-name = "precise"
+name = "precise-calc"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+readme = "README.md"
+description = "A high precision calculator library and command line tool."
+keywords = ["calcuator", "arbitrary precision"]
+categories = ["compilers", "command-line-utilities", "mathematics"]
+repository = "https://github.com/Callum-Irving/precise-calc/"
+homepage = "https://callumirving.pages.dev/projects/calculator/"
+
+[lib]
+name = "precise-calc"
+path = "src/lib.rs"
+
+[[bin]]
+name = "precise-calc"
+path = "src/main.rs"
 
 [dependencies]
 astro-float = "0.6.8"
