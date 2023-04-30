@@ -1,9 +1,9 @@
 use std::io;
 use std::io::Write;
 
-use precise::context::Context;
-use precise::eval::CalcValue;
-use precise::{ast, eval, parser, CalcError};
+use precise_calc::context::Context;
+use precise_calc::eval::CalcValue;
+use precise_calc::{ast, eval, parser, CalcError};
 
 fn read() -> Result<ast::Stmt, CalcError> {
     print!("calculator> ");

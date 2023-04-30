@@ -11,7 +11,7 @@ repository = "https://github.com/Callum-Irving/precise-calc/"
 homepage = "https://callumirving.pages.dev/projects/calculator/"
 
 [lib]
-name = "precise-calc"
+name = "precise_calc"
 path = "src/lib.rs"
 
 [[bin]]

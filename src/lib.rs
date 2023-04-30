@@ -1,3 +1,5 @@
+#![warn(missing_docs)]
+
 use std::fmt::Display;
 
 use astro_float::{BigFloat, RoundingMode};
