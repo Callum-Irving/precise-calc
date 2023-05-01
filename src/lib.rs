@@ -4,6 +4,7 @@
 use std::fmt::Display;
 
 use astro_float::{BigFloat, RoundingMode};
+use thiserror::Error;
 
 pub mod ast;
 pub mod context;
@@ -18,38 +19,44 @@ pub const PREC: usize = 128;
 pub const BASE_10_PREC: usize = 38; // log(2^PREC)
 pub const RM: RoundingMode = RoundingMode::ToEven;
 
-#[derive(Debug, Clone)]
+#[derive(Error, Debug, Clone)]
 pub enum CalcError {
     /// Symbol is not in context.
+    #[error("ERROR: name not found: {0}")]
     NameNotFound(String),
 
     /// Use tried to assign a value to a name that already has a value assigned to it.
+    #[error("ERROR: name already bound: {0}")]
     NameAlreadyBound(String),
 
     /// Function called with incorrect number of arguments. `IncorrectArity(expected, found)`.
+    #[error("ERROR: expected {0} arguments, found {1}")]
     IncorrectArity(usize, usize),
 
+    #[error("ERROR: number parsing error")]
     ParseNum,
+    #[error("ERROR: parsing error")]
     ParseError,
+    #[error("ERROR: IO error")]
     IOError,
 }
 
-impl Display for CalcError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            CalcError::NameNotFound(name) => write!(f, "ERROR: Name not found: \"{}\"", name),
-            CalcError::NameAlreadyBound(name) => {
-                write!(f, "ERROR: Name already bound: \"{}\"", name)
-            }
-            CalcError::IncorrectArity(expected, found) => {
-                write!(f, "ERROR: Expected {} arguments, found {}", expected, found)
-            }
-            CalcError::ParseError => write!(f, "ERROR: Parsing error"),
-            CalcError::IOError => write!(f, "ERROR: IO error"),
-            CalcError::ParseNum => write!(f, "ERROR: Number parsing error"),
-        }
-    }
-}
+// impl Display for CalcError {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         match self {
+//             CalcError::NameNotFound(name) => write!(f, "ERROR: Name not found: \"{}\"", name),
+//             CalcError::NameAlreadyBound(name) => {
+//                 write!(f, "ERROR: Name already bound: \"{}\"", name)
+//             }
+//             CalcError::IncorrectArity(expected, found) => {
+//                 write!(f, "ERROR: Expected {} arguments, found {}", expected, found)
+//             }
+//             CalcError::ParseError => write!(f, "ERROR: Parsing error"),
+//             CalcError::IOError => write!(f, "ERROR: IO error"),
+//             CalcError::ParseNum => write!(f, "ERROR: Number parsing error"),
+//         }
+//     }
+// }
 
 #[cfg(test)]
 mod tests {
