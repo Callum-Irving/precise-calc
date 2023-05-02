@@ -1,8 +1,8 @@
 use astro_float::{BigFloat, Radix};
 use nom::branch::alt;
-use nom::bytes::complete::take_while;
+use nom::bytes::complete::{is_not, take_while};
 use nom::character::complete::{char, digit1, satisfy};
-use nom::combinator::{cut, map, opt, recognize};
+use nom::combinator::{cut, map, opt, recognize, value};
 use nom::multi::{fold_many0, many0, many1, separated_list0};
 use nom::sequence::{delimited, pair, preceded, terminated, tuple};
 use nom::IResult;
@@ -24,32 +24,42 @@ fn whitespace0(input: &str) -> IResult<&str, &str> {
 }
 
 pub fn parse_stmt(input: &str) -> IResult<&str, ast::Stmt> {
-    alt((
-        map(
-            tuple((
-                preceded(whitespace0, parse_symbol),
-                delimited(
-                    char('('),
-                    separated_list0(delimited(whitespace0, char(','), whitespace0), parse_symbol),
-                    char(')'),
-                ),
-                delimited(whitespace0, char('='), whitespace0),
-                terminated(parse_expr, whitespace0),
-            )),
-            |(name, params, _, body)| ast::Stmt::FuncDef { name, params, body },
-        ),
-        map(
-            tuple((
-                delimited(whitespace0, parse_symbol, whitespace0),
-                char('='),
-                delimited(whitespace0, parse_expr, whitespace0),
-            )),
-            |(name, _, value)| ast::Stmt::Assignment { name, value },
-        ),
-        map(delimited(whitespace0, parse_expr, whitespace0), |expr| {
-            ast::Stmt::ExprStmt(expr)
-        }),
-    ))(input)
+    terminated(
+        alt((
+            map(
+                tuple((
+                    preceded(whitespace0, parse_symbol),
+                    delimited(
+                        char('('),
+                        separated_list0(
+                            delimited(whitespace0, char(','), whitespace0),
+                            parse_symbol,
+                        ),
+                        char(')'),
+                    ),
+                    delimited(whitespace0, char('='), whitespace0),
+                    terminated(parse_expr, whitespace0),
+                )),
+                |(name, params, _, body)| ast::Stmt::FuncDef { name, params, body },
+            ),
+            map(
+                tuple((
+                    delimited(whitespace0, parse_symbol, whitespace0),
+                    char('='),
+                    delimited(whitespace0, parse_expr, whitespace0),
+                )),
+                |(name, _, value)| ast::Stmt::Assignment { name, value },
+            ),
+            map(delimited(whitespace0, parse_expr, whitespace0), |expr| {
+                ast::Stmt::ExprStmt(expr)
+            }),
+        )),
+        opt(parse_comment),
+    )(input)
+}
+
+fn parse_comment(input: &str) -> IResult<&str, ()> {
+    value((), pair(char(';'), is_not("\n")))(input)
 }
 
 pub fn parse_expr(input: &str) -> IResult<&str, ast::Expr> {
@@ -290,7 +300,7 @@ mod tests {
 
     #[test]
     fn test_parse_stmt_list() {
-        let (rest, stmts) = parse_stmt_list("x=5\n1+2").unwrap();
+        let (rest, stmts) = parse_stmt_list("x=5 ; here is an EOL comment\n1+2").unwrap();
         assert_eq!(stmts.len(), 2);
         assert!(rest.is_empty());
     }
