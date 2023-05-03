@@ -5,6 +5,7 @@ use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 
 use crate::ast::{BuiltinFunc, CalcFuncRef, UserFunc};
+use crate::builtins;
 use crate::{CalcError, CalcResult, Number, PREC, RM};
 
 lazy_static! {
@@ -14,57 +15,35 @@ lazy_static! {
         // Square root function
         m.insert(
             "sqrt".to_string(),
-            BuiltinFunc::new(1, |args, _ctx| {
-                Ok(args[0].clone().sqrt(PREC, RM))
-            }),
+            BuiltinFunc::new(1, builtins::sqrt)
         );
 
         // Natural logarithm
         m.insert(
             "ln".to_string(),
-            BuiltinFunc::new(1, |args, _ctx| {
-                let mut consts = astro_float::Consts::new().unwrap();
-                Ok(args[0].ln(PREC, RM, &mut consts))
-            })
+            BuiltinFunc::new(1, builtins::ln)
         );
 
         // Logarithm of any base
         m.insert(
             "log".to_string(),
-            BuiltinFunc::new(1, |args, _ctx| {
-                let mut consts = astro_float::Consts::new().unwrap();
-                Ok(args[0].log10(PREC, RM, &mut consts))
-            })
+            BuiltinFunc::new(1, builtins::log)
         );
 
         // Trig functions
         m.insert(
             "sin".to_string(),
-            BuiltinFunc::new(1, |args, _ctx| {
-                let mut consts = astro_float::Consts::new().unwrap();
-                if args[0] == consts.pi(PREC, RM) {
-                    // return 0
-                    Ok(BigFloat::from_f32(0.0, PREC))
-                } else {
-                    Ok(args[0].clone().sin(PREC, RM, &mut consts))
-                }
-            })
+            BuiltinFunc::new(1, builtins::sin)
         );
 
         m.insert(
             "cos".to_string(),
-            BuiltinFunc::new(1, |args, _ctx| {
-                let mut consts = astro_float::Consts::new().unwrap();
-                Ok(args[0].clone().cos(PREC, RM, &mut consts))
-            })
+            BuiltinFunc::new(1, builtins::cos)
         );
 
         m.insert(
             "tan".to_string(),
-            BuiltinFunc::new(1, |args, _ctx| {
-               let mut consts = astro_float::Consts::new().unwrap();
-                Ok(args[0].clone().tan(PREC, RM, &mut consts))
-            })
+            BuiltinFunc::new(1, builtins::tan)
         );
 
         m

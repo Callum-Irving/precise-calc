@@ -7,6 +7,7 @@ use astro_float::{BigFloat, RoundingMode};
 use thiserror::Error;
 
 pub mod ast;
+pub mod builtins;
 pub mod context;
 pub mod eval;
 pub mod formatting;
@@ -39,6 +40,8 @@ pub enum CalcError {
     ParseError,
     #[error("ERROR: IO error")]
     IOError,
+    #[error("ERROR: unknown error")]
+    Unknown,
 }
 
 // impl Display for CalcError {
