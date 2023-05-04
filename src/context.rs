@@ -1,3 +1,5 @@
+//! Contains the [Context] struct used to store functions and values currently defined.
+
 use std::collections::HashMap;
 
 use astro_float::BigFloat;
@@ -9,6 +11,7 @@ use crate::builtins;
 use crate::{CalcError, CalcResult, Number, PREC, RM};
 
 lazy_static! {
+    /// HashMap of all builtin functions (name mapped to function).
     pub static ref BUILTINS: HashMap<String, BuiltinFunc> = {
         let mut m = HashMap::new();
 
@@ -49,6 +52,7 @@ lazy_static! {
         m
     };
 
+    /// Builtin values such as e or pi.
     pub static ref BUILTIN_VALUES: HashMap<String, BigFloat> = {
         let mut m = HashMap::new();
         let mut consts = astro_float::Consts::new().unwrap();
@@ -58,6 +62,9 @@ lazy_static! {
     };
 }
 
+/// The context for evaluating expressions and statements in.
+///
+/// Maps names to functions and values.
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Context {
     functions: Vec<HashMap<String, UserFunc>>,
@@ -65,6 +72,7 @@ pub struct Context {
 }
 
 impl Context {
+    /// Create a new empty context.
     pub fn new() -> Context {
         Context {
             functions: vec![HashMap::new()],
@@ -72,10 +80,14 @@ impl Context {
         }
     }
 
+    /// Add a new scope of values to the context.
     pub fn add_scope(&mut self, values: HashMap<String, Number>) {
         self.values.push(values);
     }
 
+    /// Lookup a value in the context. Returns the [CalcError::NameNotFound] if the name is not
+    /// mapped in the context (in any scope). If the name is in multiple scopes it returns the
+    /// value from the last scope.
     pub fn lookup_value(&self, name: &str) -> CalcResult {
         if let Some(value) = self
             .values
@@ -92,6 +104,9 @@ impl Context {
         }
     }
 
+    /// Lookup a function in the context. Returns the [CalcError::NameNotFound] if the name is not
+    /// mapped in the context (in any scope). If the name is in multiple scopes it returns the
+    /// value from the last scope.
     pub fn lookup_fn(&self, name: &str) -> Result<CalcFuncRef, CalcError> {
         if let Some(func) = self
             .functions
@@ -108,16 +123,20 @@ impl Context {
         }
     }
 
+    /// Bind `value` to `name` in the top scope. If `name` is the name of a builtin value nothing
+    /// will be bound and the function will return [CalcError::NameAlreadyBound].
     pub fn bind_value(&mut self, name: String, value: Number) -> CalcResult {
         // Make sure you don't overwrite a builtin
         if BUILTIN_VALUES.contains_key(&name) {
-            Err(CalcError::NameNotFound(name))
+            Err(CalcError::NameAlreadyBound(name))
         } else {
             self.values.last_mut().unwrap().insert(name, value.clone());
             Ok(value)
         }
     }
 
+    /// Bind `func` to `name` in the top scope. If `name` is the name of a builtin function nothing
+    /// will be bound and the function will return [CalcError::NameAlreadyBound].
     pub fn bind_fn(&mut self, name: String, func: UserFunc) -> Result<(), CalcError> {
         // Make sure you don't overwrite a builtin
         if BUILTINS.contains_key(&name) {

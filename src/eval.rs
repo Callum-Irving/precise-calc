@@ -1,3 +1,5 @@
+//! Contains the functions used to evaluate an AST.
+
 use std::fmt::Display;
 
 use astro_float::Consts;
@@ -7,6 +9,9 @@ use crate::context::Context;
 use crate::formatting::float_to_string;
 use crate::{CalcError, CalcResult, Number, PREC, RM};
 
+/// Evaluate an atom in `ctx`. If `atom` is a number, return that number. If `atom` is a symbol,
+/// return the value bound to the symbol. If the symbol is not bound in `ctx`, return
+/// [CalcError::NameNotFound].
 pub fn eval_atom(atom: &Atom, ctx: &Context) -> CalcResult {
     match atom {
         Atom::Num(num) => Ok(num.clone()),
@@ -14,6 +19,7 @@ pub fn eval_atom(atom: &Atom, ctx: &Context) -> CalcResult {
     }
 }
 
+/// Evaluate an expression in `ctx`.
 pub fn eval_expr(expr: &Expr, ctx: &Context) -> CalcResult {
     match expr {
         Expr::AtomExpr(atom) => eval_atom(atom, ctx),
@@ -46,24 +52,16 @@ pub fn eval_expr(expr: &Expr, ctx: &Context) -> CalcResult {
                 .collect::<Result<Vec<Number>, CalcError>>()?;
 
             function.call(&args, ctx)
-        } // Expr::BlockExpr { stmts, final_expr } => {
-          //     // Create new scope
-          //     let mut eval_scope = ctx.clone();
-          //     eval_scope.add_scope(HashMap::new());
-
-          //     // Evaulate stmts in new scope
-          //     for stmt in stmts {
-          //         eval_stmt(stmt, &mut eval_scope)?;
-          //     }
-
-          //     // Evaluate expr in new scope
-          //     eval_expr(final_expr, &eval_scope)
-          // }
+        }
     }
 }
 
+/// Values that can be returned when a statement is evaluated.
 pub enum CalcValue {
+    /// The value returned when functions are defined.
     Ok,
+
+    /// The value returned by an expression or variable definition statement.
     Value(Number),
 }
 
@@ -76,6 +74,7 @@ impl Display for CalcValue {
     }
 }
 
+/// Evaluate a statement in `ctx`.
 pub fn eval_stmt(stmt: &Stmt, ctx: &mut Context) -> Result<CalcValue, CalcError> {
     match stmt {
         Stmt::FuncDef { name, params, body } => {

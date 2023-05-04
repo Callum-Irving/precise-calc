@@ -1,3 +1,5 @@
+//! Contains all the enums used to represent the AST.
+
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::iter::zip;
@@ -8,12 +10,17 @@ use crate::context::Context;
 use crate::eval::eval_expr;
 use crate::{CalcError, CalcResult, Number};
 
+/// Holds a reference to a builtin or user-defined function.
 pub enum CalcFuncRef<'a> {
+    /// Builtin function (like log or sqrt).
     Builtin(&'a BuiltinFunc),
+
+    /// User-defined function.
     UserDef(&'a UserFunc),
 }
 
 impl<'a> CalcFuncRef<'a> {
+    /// Call the function with arguments `args` in context `ctx`.
     pub fn call(&self, args: &[Number], ctx: &Context) -> CalcResult {
         match self {
             CalcFuncRef::Builtin(func) => {
@@ -37,38 +44,20 @@ impl<'a> CalcFuncRef<'a> {
     }
 }
 
+/// A function that can be called by the user.
 #[derive(Clone)]
 pub enum CalcFunc {
+    /// Builtin function (like log or sqrt).
     Builtin(BuiltinFunc),
+
+    /// User-defined function.
     UserDef(UserFunc),
 }
 
-// impl CalcFunc {
-//     pub fn call(&self, args: &[Number], ctx: &Context) -> CalcResult {
-//         match self {
-//             CalcFunc::Builtin(func) => {
-//                 // First, check arity
-//                 if func.arity != args.len() {
-//                     return Err(CalcError::IncorrectArity(func.arity, args.len()));
-//                 }
-//
-//                 // Call function
-//                 func.apply(args, ctx)
-//             }
-//             CalcFunc::UserDef(func) => {
-//                 // Check arity
-//                 if func.arity() != args.len() {
-//                     return Err(CalcError::IncorrectArity(func.arity(), args.len()));
-//                 }
-//
-//                 func.apply(args, ctx)
-//             }
-//         }
-//     }
-// }
-
+/// Builtin function (like log or sqrt).
 #[derive(Clone)]
 pub struct BuiltinFunc {
+    /// The number of arguments that the function takes.
     pub arity: usize,
 
     // TODO: Probably doesn't need context.
@@ -76,10 +65,11 @@ pub struct BuiltinFunc {
 }
 
 impl BuiltinFunc {
-    pub fn new(arity: usize, apply: fn(&[Number], &Context) -> CalcResult) -> BuiltinFunc {
+    pub(crate) fn new(arity: usize, apply: fn(&[Number], &Context) -> CalcResult) -> BuiltinFunc {
         BuiltinFunc { arity, apply }
     }
 
+    /// Call the function on `args` in `ctx`.
     pub fn apply(&self, args: &[Number], ctx: &Context) -> CalcResult {
         (self.apply)(args, ctx)
     }
@@ -91,6 +81,7 @@ impl Debug for BuiltinFunc {
     }
 }
 
+/// User-defined function.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct UserFunc {
     bindings: Vec<String>,
@@ -98,10 +89,12 @@ pub struct UserFunc {
 }
 
 impl UserFunc {
+    /// Create a new function with parameters `bindings` (in order) and body expression `body`.
     pub fn new(bindings: Vec<String>, body: Expr) -> UserFunc {
         UserFunc { bindings, body }
     }
 
+    /// Call the function on `args` in `ctx`.
     pub fn apply(&self, args: &[Number], ctx: &Context) -> CalcResult {
         // Create evaluation scope
         let mut eval_scope = ctx.clone();
@@ -118,12 +111,14 @@ impl UserFunc {
     }
 }
 
+#[allow(missing_docs)]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Atom {
     Symbol(String),
     Num(Number),
 }
 
+#[allow(missing_docs)]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum BinaryOp {
     Plus,
@@ -133,11 +128,13 @@ pub enum BinaryOp {
     Power,
 }
 
+#[allow(missing_docs)]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum UnaryOp {
     Negate,
 }
 
+#[allow(missing_docs)]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Expr {
     AtomExpr(Atom),
@@ -154,12 +151,9 @@ pub enum Expr {
         function: String,
         args: Vec<Expr>,
     },
-    // BlockExpr {
-    //     stmts: Vec<Stmt>,
-    //     final_expr: Box<Expr>,
-    // },
 }
 
+#[allow(missing_docs)]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Stmt {
     FuncDef {

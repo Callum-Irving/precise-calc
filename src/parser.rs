@@ -1,3 +1,5 @@
+//! Contains functions used to parse strings into an AST.
+
 use astro_float::{BigFloat, Radix};
 use nom::branch::alt;
 use nom::bytes::complete::{is_not, take_while};
@@ -11,6 +13,7 @@ use crate::Number;
 use crate::RM;
 use crate::{ast, PREC};
 
+/// Parse a list of statements separated by newlines.
 pub fn parse_stmt_list(input: &str) -> IResult<&str, Vec<ast::Stmt>> {
     separated_list0(newline1, parse_stmt)(input)
 }
@@ -23,6 +26,7 @@ fn whitespace0(input: &str) -> IResult<&str, &str> {
     recognize(many0(alt((char(' '), char('\t')))))(input)
 }
 
+/// Parse a single statement.
 pub fn parse_stmt(input: &str) -> IResult<&str, ast::Stmt> {
     terminated(
         alt((
@@ -62,6 +66,7 @@ fn parse_comment(input: &str) -> IResult<&str, ()> {
     value((), pair(char(';'), is_not("\n")))(input)
 }
 
+/// Parse a single expression.
 pub fn parse_expr(input: &str) -> IResult<&str, ast::Expr> {
     let (input, first_term) = parse_term(input)?;
     // I cannot for the life of me figure out why I need to bind this or clone first_term but here we are.
@@ -129,25 +134,10 @@ fn parse_parens(input: &str) -> IResult<&str, ast::Expr> {
             parse_expr,
             terminated(char(')'), whitespace0),
         ),
-        //parse_blockexpr,
         parse_function_call,
         map(parse_atom, |atom| ast::Expr::AtomExpr(atom)),
     ))(input)
 }
-
-// fn parse_blockexpr(input: &str) -> IResult<&str, ast::Expr> {
-//     map(
-//         delimited(
-//             preceded(whitespace0, char('{')),
-//             tuple((many0(parse_stmt), parse_expr)),
-//             terminated(char('}'), whitespace0),
-//         ),
-//         |(stmts, expr)| ast::Expr::BlockExpr {
-//             stmts,
-//             final_expr: Box::new(expr),
-//         },
-//     )(input)
-// }
 
 fn parse_function_call(input: &str) -> IResult<&str, ast::Expr> {
     map(
@@ -206,7 +196,6 @@ fn recognize_number(input: &str) -> IResult<&str, &str> {
             opt(alt((char('+'), char('-')))),
             cut(digit1),
         ))),
-        // opt(char('i')),
     )))(input)
 }
 
@@ -276,21 +265,6 @@ mod tests {
     fn test_parse_stmt() {
         let (_rest, _stmt) = parse_stmt("sqrt(1) + 2 * 3;").unwrap();
     }
-
-    // #[test]
-    // fn test_parse_block() {
-    //     let (_rest, _expr) = parse_blockexpr("{3; 4}").unwrap();
-    //     let (_rest, _other) = parse_blockexpr("{g = 2; 5; 1}").unwrap();
-    //     let (_, _) = parse_stmt("    g   =    3  ;").unwrap();
-    //     let (_, _) = parse_expr("{ g    =    3;    g} ").unwrap();
-    //     let (_, expr) = parse_expr("{g=3;g}").unwrap();
-    //     println!("{:?}", expr);
-    //     let ctx = Context::new();
-    //     assert_eq!(
-    //         eval_expr(&expr, &ctx).unwrap(),
-    //         BigFloat::from_f64(3_f64, PREC)
-    //     )
-    // }
 
     #[test]
     fn test_parse_fn_def() {

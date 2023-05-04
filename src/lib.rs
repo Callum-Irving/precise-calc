@@ -1,25 +1,34 @@
+//! This is a crate for parsing and evaluating math expressions.
+
 #![warn(missing_docs)]
 #![warn(rustdoc::missing_crate_level_docs)]
-
-use std::fmt::Display;
 
 use astro_float::{BigFloat, RoundingMode};
 use thiserror::Error;
 
 pub mod ast;
-pub mod builtins;
+mod builtins;
 pub mod context;
 pub mod eval;
 pub mod formatting;
 pub mod parser;
 
+/// The type of numbers used in expressions.
 pub type Number = BigFloat;
+
+/// Commonly used result of either a [Number] or [CalcError].
 pub type CalcResult = Result<Number, CalcError>;
-// Preicison of floating point numbers
+
+/// Precision of floating point numbers
 pub const PREC: usize = 128;
+
+/// The precision of floating point numbers when converted to base 10. Calculated by `log(2^PREC)`.
 pub const BASE_10_PREC: usize = 38; // log(2^PREC)
+
+/// The rounding mode of floating point numbers.
 pub const RM: RoundingMode = RoundingMode::ToEven;
 
+/// The error type returned when functions in this crate go wrong.
 #[derive(Error, Debug, Clone)]
 pub enum CalcError {
     /// Symbol is not in context.
@@ -34,32 +43,22 @@ pub enum CalcError {
     #[error("ERROR: expected {0} arguments, found {1}")]
     IncorrectArity(usize, usize),
 
+    /// There was an error when parsing a number.
     #[error("ERROR: number parsing error")]
     ParseNum,
+
+    /// There was a parsing error.
     #[error("ERROR: parsing error")]
     ParseError,
+
+    /// An error with IO like stdin not working.
     #[error("ERROR: IO error")]
     IOError,
+
+    /// Error in `astro_float`.
     #[error("ERROR: unknown error")]
     Unknown,
 }
-
-// impl Display for CalcError {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         match self {
-//             CalcError::NameNotFound(name) => write!(f, "ERROR: Name not found: \"{}\"", name),
-//             CalcError::NameAlreadyBound(name) => {
-//                 write!(f, "ERROR: Name already bound: \"{}\"", name)
-//             }
-//             CalcError::IncorrectArity(expected, found) => {
-//                 write!(f, "ERROR: Expected {} arguments, found {}", expected, found)
-//             }
-//             CalcError::ParseError => write!(f, "ERROR: Parsing error"),
-//             CalcError::IOError => write!(f, "ERROR: IO error"),
-//             CalcError::ParseNum => write!(f, "ERROR: Number parsing error"),
-//         }
-//     }
-// }
 
 #[cfg(test)]
 mod tests {

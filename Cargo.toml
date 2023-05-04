@@ -15,7 +15,7 @@ name = "precise_calc"
 path = "src/lib.rs"
 
 [[bin]]
-name = "precise-calc"
+name = "calculator"
 path = "src/main.rs"
 
 [dependencies]

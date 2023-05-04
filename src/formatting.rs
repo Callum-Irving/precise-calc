@@ -1,3 +1,5 @@
+//! Contains functions used to format a [BigFloat] to a string.
+
 use std::collections::VecDeque;
 
 use astro_float::{BigFloat, Sign};
@@ -177,6 +179,7 @@ fn format_num(sign: astro_float::Sign, mantissa: &[u8], mut expt: i32) -> String
     }
 }
 
+/// Convert a [BigFloat] to a string, rounding off all digits after BASE_10_PREC.
 pub fn float_to_string(num: &BigFloat) -> String {
     let (s, m, e) = num.convert_to_radix(astro_float::Radix::Dec, RM).unwrap();
     let (e, m) = round_to_digit(e, m, BASE_10_PREC).unwrap();
