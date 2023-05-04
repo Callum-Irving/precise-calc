@@ -24,6 +24,7 @@ pub fn sin(args: &[Number], _ctx: &Context) -> CalcResult {
     let mut consts = astro_float::Consts::new().map_err(|_| CalcError::Unknown)?;
 
     // Hack to round k*pi to 0
+    // TODO: Use some sort of epsilon based on precision of arg rather than checking equality.
     let res = if args[0].rem(&consts.pi(PREC, RM)).abs() == BigFloat::from_f32(0.0, PREC) {
         BigFloat::from_f32(0.0, PREC)
     } else {
@@ -38,6 +39,7 @@ pub fn cos(args: &[Number], _ctx: &Context) -> CalcResult {
     let mut consts = astro_float::Consts::new().map_err(|_| CalcError::Unknown)?;
 
     // Hack to round pi(k+1/2) to 0
+    // TODO: Use some sort of epsilon based on precision of arg rather than checking equality.
     let res = if args[0]
         .rem(&consts.pi(PREC, RM))
         .div(&consts.pi(PREC, RM), PREC, RM)
@@ -73,6 +75,5 @@ mod tests {
         println!("{}", sin(&[consts.pi(PREC, RM)], &ctx).unwrap());
         println!("{}", sin(&[two_pi], &ctx).unwrap());
         println!("{}", cos(&[pi_by_2], &ctx).unwrap());
-        panic!();
     }
 }
