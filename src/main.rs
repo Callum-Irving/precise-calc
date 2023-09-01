@@ -1,12 +1,17 @@
 use std::io;
 use std::io::Write;
 
+use atty::Stream;
+
 use precise_calc::context::Context;
 use precise_calc::eval::CalcValue;
 use precise_calc::{ast, eval, parser, CalcError};
 
 fn read() -> Result<ast::Stmt, CalcError> {
-    print!("calculator> ");
+    if atty::is(Stream::Stdin) {
+        print!("calculator> ");
+    }
+
     io::stdout().flush().map_err(|_| CalcError::IOError)?;
     let mut buf = String::new();
     io::stdin()
@@ -14,6 +19,11 @@ fn read() -> Result<ast::Stmt, CalcError> {
         .map_err(|_| CalcError::IOError)?;
 
     if buf.trim() == "exit" {
+        std::process::exit(0);
+    }
+
+    // if stdin is piped and empty then just exit with code 0 without outputting anything
+    if !atty::is(Stream::Stdin) && buf.is_empty() {
         std::process::exit(0);
     }
 
